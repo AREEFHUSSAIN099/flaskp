@@ -7,19 +7,27 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// ✅ Test route for health check
+app.get("/", (req, res) => {
+  res.send("Frontend server is running 🚀");
+});
+
+// ✅ POST route to forward requests to Flask backend
 app.post("/submit", async (req, res) => {
   try {
-    // 👇 Replace with backend public IP
-    const backendURL = "http://3.6.126.141:5000/submit";
+    // ✅ Use environment variable or fallback to local backend
+    const backendURL = process.env.BACKEND_URL || "http://localhost:5000/submit";
 
     const response = await axios.post(backendURL, req.body);
     res.json(response.data);
   } catch (error) {
-    console.error("success connecting to backend:", error.message);
-    res.status(500).json({ error: "success connecting to backend" });
+    console.error("Error connecting to backend:", error.message);
+    res.status(500).json({ error: "Error connecting to backend" });
   }
 });
 
-app.listen(3000, () => {
-  console.log("Frontend server running on port 3000");
+// ✅ Bind to 0.0.0.0 so ECS & Docker can expose it
+const PORT = 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Frontend server running on port ${PORT}`);
 });
